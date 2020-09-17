@@ -1,7 +1,5 @@
 classdef MouseFinder
   % MouseFinder
-  % Calculate
-  % Present results
   properties
     ImagesFolder
     AreaList
@@ -20,7 +18,42 @@ classdef MouseFinder
       obj.AreasEmptyImages = obj.getEmptyAreas();
     end
     
-
+    function nAreas = getAreasNumber(obj)
+      nAreas = size(obj.AreaList,1);
+    end
+    function handles = drawareas(obj)
+      for iArea = 1:obj.getAreasNumber()
+        handles(iArea) = rectangle('Position', obj.AreaList(iArea,:),...
+          'EdgeColor', 'r', 'LineWidth', 2); %#ok<AGROW>
+      end
+    end
+    
+    function showresults(obj, MauseLocation)
+      fig = figure;
+      
+      slider = obj.createslider(fig);
+      subplot(1,3,1:2)
+      ImageHandle = imagesc(getrawimage(obj,slider.Value));
+      AreasHandles = drawareas(obj);
+      set(AreasHandles(MauseLocation(slider.Value)), 'EdgeColor', [0 1 0])
+      TitleHandle =  title(sprintf('Image %i',slider.Value));
+      addlistener(slider,'Value','PostSet',@updplot);
+      % Nested function for updating plot:
+      function updplot(~, event)
+        set(AreasHandles, 'EdgeColor', [1 0 0])
+        sliderValue = round(event.AffectedObject.Value);
+        set(AreasHandles(MauseLocation(sliderValue)), 'EdgeColor', [0 1 0])
+        set(ImageHandle, 'CData', getrawimage(obj,sliderValue))
+        set(TitleHandle, 'String', sprintf('Image %i Location [%i]',...
+          sliderValue, MauseLocation(sliderValue)))
+      end
+      
+      subplot(1,3,3)
+      uv = unique(MauseLocation);
+      bins = histc(MauseLocation,uv);
+      pie(bins, num2str(uv'))
+      title('Time spend in each location')
+    end
     
     function imgOut = imcropArea(obj, img, areanum)
        imgOut = imcrop(img,  obj.AreaList(areanum,:));
@@ -40,7 +73,7 @@ classdef MouseFinder
      [~, location] = max(cellfun(@(x) mean(x,'all') , AreaDiff));
     end
     
-    function MouseLocation = findmouselocation(obj)
+    function MouseLocation= findmouselocation(obj)
       MouseLocation = zeros(1,obj.getNumberOfImages);
       nImages = obj.getNumberOfImages;
       f = waitbar(0,'Please wait...');
@@ -60,6 +93,7 @@ classdef MouseFinder
         imagesc(AreaDiff{iArea})
       end
     end
+    
     function EmptyAreas = getEmptyAreas(obj)
       % Load images and cut empty images. Save them for later calculations
       nAreas = size(obj.AreaList,1);
