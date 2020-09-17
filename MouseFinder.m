@@ -5,6 +5,7 @@ classdef MouseFinder
   properties
     ImagesFolder
     fileds
+    nImages 
   end
   
   
@@ -12,8 +13,17 @@ classdef MouseFinder
     function obj = MouseFinder()
       %MouseFinder Initilize with default folder name
       obj.ImagesFolder = ['images' filesep]; 
+      
     end
     
+    function nImages = getNumberOfImages(obj)
+      % -2 becaouse dir returns also . and ..
+      nImages=  numel(dir(obj.ImagesFolder))-2;
+    end
+    
+    
+    function scrollrawimages(obj)   
+    end
     
     function img = getimage(obj, ImageNumner)
       % Load and preprocess image. 

@@ -3,8 +3,9 @@
 
 %% Section 1 Title
 % Description of first code block
-MF = MouseFinder()
+MF = MouseFinder();
+img = MF.getrawimage(1);
+imagesc(img);
 
-%% Section 2 Title
-% Description of second code block
-b = 2;
+
+assert(isequal(MF.getNumberOfImages, 600))
