@@ -3,13 +3,10 @@ classdef MouseFinder
   %   Detailed explanation goes here
   
   properties
-    Property1
+    ImagesFolder
+    fileds
   end
   
-  properties (GetAccess = private)
-    fileds
-    ImagesFolder
-  end
   
   methods
     function obj = MouseFinder()
