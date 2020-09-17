@@ -1,11 +1,9 @@
-
-
 %% Tests Script
 MF = MouseFinder();
 img = MF.getrawimage(1);
 fig = figure; imagesc(img); close(fig)
 
-%% 
+% Number of images
 assert(isequal(MF.getNumberOfImages, 600))
 
 % Function allows to scrall raw images:

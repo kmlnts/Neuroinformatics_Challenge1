@@ -49,8 +49,12 @@ classdef MouseFinder
       subplot(1,3,3)
       uv = unique(MauseLocation);
       bins = histc(MauseLocation,uv);
-      pie(bins, num2str(uv'))
-      title('Time spend in each location')
+      perc = [bins/sum(bins)] * 100;
+      for i = 1:numel(uv)
+        labels{i} = sprintf('#%i (%1.1f%%)', uv(i), perc(i));
+      end
+      pie(bins,labels)
+      title('Percentage spend in each location')
     end
     
     function imgOut = imcropLocation(obj, img, LocationID)
