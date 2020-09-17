@@ -14,3 +14,5 @@ assert(isequal(MF.getNumberOfImages, 600))
 MF.scrollrawimages()
 
 MF.showEmptyAreas()
+
+ml = MF.findmouselocation();
