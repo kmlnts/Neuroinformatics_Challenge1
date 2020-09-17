@@ -2,35 +2,33 @@ classdef MouseFinder
   % MouseFinder
   properties
     ImagesFolder
-    AreaList
-    ImagesWhereAreaIsEmpty
-    AreasEmptyImages
+    LocationList
+    ImagesWhereLocationIsEmpty
+    EmptyLocationImages
   end
-
+  
   methods
     function obj = MouseFinder()
       %MouseFinder Initilize with default folder name
       obj.ImagesFolder = ['images' filesep]; 
-      obj.AreaList =  [70 70, 200,450;...
+      obj.LocationList =  [70 70, 200,450;...
                       270 70, 200,450;...
                       470 70, 200,450];
-      obj.ImagesWhereAreaIsEmpty = [1,1,9];
-      obj.AreasEmptyImages = obj.getEmptyAreas();
+      obj.ImagesWhereLocationIsEmpty = [1,1,9];
+      obj.EmptyLocationImages = obj.getEmptyAreas();
     end
     
-    function nAreas = getAreasNumber(obj)
-      nAreas = size(obj.AreaList,1);
-    end
+
+    
     function handles = drawareas(obj)
-      for iArea = 1:obj.getAreasNumber()
-        handles(iArea) = rectangle('Position', obj.AreaList(iArea,:),...
+      for iLocation = 1:obj.getNumberOfLocations()
+        handles(iLocation) = rectangle('Position', obj.LocationList(iLocation,:),...
           'EdgeColor', 'r', 'LineWidth', 2); %#ok<AGROW>
       end
     end
     
     function showresults(obj, MauseLocation)
-      fig = figure;
-      
+      fig = figure('Position', [540 424 1002 394]);
       slider = obj.createslider(fig);
       subplot(1,3,1:2)
       ImageHandle = imagesc(getrawimage(obj,slider.Value));
@@ -55,16 +53,16 @@ classdef MouseFinder
       title('Time spend in each location')
     end
     
-    function imgOut = imcropArea(obj, img, areanum)
-       imgOut = imcrop(img,  obj.AreaList(areanum,:));
+    function imgOut = imcropLocation(obj, img, LocationID)
+       imgOut = imcrop(img,  obj.LocationList(LocationID,:));
     end
     
-    function AreaDiff = getdifference(obj, img)
-      AreaDiff = obj.AreasEmptyImages;
-      for iArea = 1:numel(obj.AreasEmptyImages)
-          imgdiff = abs(obj.AreasEmptyImages{iArea} - obj.imcropArea(img, iArea));
+    function LocationImageDifference = getImagesDifference(obj, img)
+      LocationImageDifference = obj.EmptyLocationImages;
+      for iLocation = 1:obj.getNumberOfLocations
+          imgdiff = abs(obj.EmptyLocationImages{iLocation} - obj.imcropLocation(img, iLocation));
           imgdiff(imgdiff<10) = 0;
-          AreaDiff{iArea} = imgdiff;
+          LocationImageDifference{iLocation} = imgdiff;
       end  
     end
     
@@ -73,13 +71,13 @@ classdef MouseFinder
      [~, location] = max(cellfun(@(x) mean(x,'all') , AreaDiff));
     end
     
-    function MouseLocation= findmouselocation(obj)
+    function MouseLocation = findmouselocation(obj)
       MouseLocation = zeros(1,obj.getNumberOfImages);
       nImages = obj.getNumberOfImages;
       f = waitbar(0,'Please wait...');
       for i = 1:nImages
         img = obj.getimage(i);
-        AreaDiff = getdifference(obj, img);
+        AreaDiff = getImagesDifference(obj, img);
         MouseLocation(i) = obj.getLocationWithMouse(AreaDiff);
         if rem(i,20),waitbar(i/nImages,f,'Please wait..'); end
       end
@@ -96,30 +94,26 @@ classdef MouseFinder
     
     function EmptyAreas = getEmptyAreas(obj)
       % Load images and cut empty images. Save them for later calculations
-      nAreas = size(obj.AreaList,1);
-      for iArea = 1:nAreas
-        EmptyAreas{iArea} = imcrop(obj.getimage(obj.ImagesWhereAreaIsEmpty(iArea)),...
-        obj.AreaList(iArea,:)); %#ok<AGROW>
+      for iLocation = 1:obj.getNumberOfLocations
+        EmptyAreas{iLocation} = imcrop(obj.getimage(obj.ImagesWhereLocationIsEmpty(iLocation)),...
+        obj.LocationList(iLocation,:)); %#ok<AGROW>
       end
     end
     
     function showEmptyAreas(obj)
-      fig = figure;
-      nAreas = numel(obj.AreasEmptyImages);
-      for iArea = 1:nAreas
-        figure(fig)
-        subplot(1,nAreas, iArea)
-        imagesc(obj.AreasEmptyImages{iArea})
+      % Shows empty areas in new figure
+      figure;
+      nLocations = obj.getNumberOfLocations;
+      for iLocation = 1:obj.getNumberOfLocations
+        subplot(1,nLocations, iLocation), imagesc(obj.EmptyLocationImages{iLocation})
       end
     end
     
-    function nImages = getNumberOfImages(obj)
-      % -2 becaouse dir returns also . and ..
-      nImages=  numel(dir(obj.ImagesFolder))-2;
-    end
+
     
     
     function scrollrawimages(obj)   
+      % Allows to scrall raw images in given directory
       fig = figure;
       slider = obj.createslider(fig);
       ImageHandle = imagesc(getrawimage(obj,slider.Value));
@@ -134,6 +128,7 @@ classdef MouseFinder
     end
     
     function slider = createslider(obj, fig)
+      % Create slider on the figure: 
         slider = uicontrol('Parent', fig, 'Style', 'slider',...
         'Units', 'Normalized', 'Position', [0 0 .5 .05]);
       set(slider, 'Min',1)
@@ -142,6 +137,17 @@ classdef MouseFinder
       set(slider,  'Value', 10)
     end
     
+    % getters:
+    
+    function nImages = getNumberOfImages(obj)
+      % -2 becaouse dir returns also . and ..
+      nImages=  numel(dir(obj.ImagesFolder))-2;
+    end
+    
+    function nLocations = getNumberOfLocations(obj)
+      nLocations = size(obj.LocationList,1); 
+    end
+        
     function img = getimage(obj, ImageNumner)
       % Load and preprocess image. 
       img = obj.preprocessrawimage(obj.getrawimage(ImageNumner));

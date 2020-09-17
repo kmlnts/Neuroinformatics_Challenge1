@@ -1,6 +1,6 @@
+% Script for calculation mouse location used to compared time of
+% calculation during refacoring
 tic
-
 MF = MouseFinder();
-MF.findmouselocation();
-MF.showresult(ml);
+ml = MF.findmouselocation();
 toc
