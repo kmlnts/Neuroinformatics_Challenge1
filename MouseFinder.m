@@ -4,16 +4,45 @@ classdef MouseFinder
   
   properties
     ImagesFolder
-    fileds
-    nImages 
+    AreaList
+    ImagesWhereAreaIsEmpty
+    AreasEmptyImages
   end
-  
+%   
+%   properties (GetAccess = private)
+%     AreasEmptyImages
+%   end
   
   methods
     function obj = MouseFinder()
       %MouseFinder Initilize with default folder name
       obj.ImagesFolder = ['images' filesep]; 
-      
+      obj.AreaList =  [70 70, 200,450;...
+                    270 70, 200,450;...
+                    470 70, 200,450];
+      obj.ImagesWhereAreaIsEmpty = [1,1,9];
+      obj.AreasEmptyImages = obj.getEmptyAreas();
+    end
+    
+    
+    
+    function EmptyAreas = getEmptyAreas(obj)
+      % Load images and cut empty images. Save them for later calculations
+      nAreas = size(obj.AreaList,1);
+      for iArea = 1:nAreas
+        EmptyAreas{iArea} = imcrop(obj.getimage(obj.ImagesWhereAreaIsEmpty(iArea)),...
+        obj.AreaList(iArea,:)); %#ok<AGROW>
+      end
+    end
+    
+    function showEmptyAreas(obj)
+      fig = figure;
+      nAreas = numel(obj.AreasEmptyImages);
+      for iArea = 1:nAreas
+        figure(fig)
+        subplot(1,nAreas, iArea)
+        imagesc(obj.AreasEmptyImages{iArea})
+      end
     end
     
     function nImages = getNumberOfImages(obj)
@@ -55,7 +84,7 @@ classdef MouseFinder
       img = imread([obj.ImagesFolder sprintf('img%0.3i.jpeg',ImageNumber)]);
     end
     
-    function imgOUT = preprocessrawimage(imgIN)
+    function imgOUT = preprocessrawimage(~,imgIN)
       % Here some preprocessing can be applied
       imgOUT = imgIN(:,:,1);
     end
