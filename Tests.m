@@ -7,5 +7,8 @@ MF = MouseFinder();
 img = MF.getrawimage(1);
 imagesc(img);
 
-
+%%
 assert(isequal(MF.getNumberOfImages, 600))
+
+% 
+MF.scrollrawimages()

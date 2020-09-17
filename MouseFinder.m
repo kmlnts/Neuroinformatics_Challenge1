@@ -23,6 +23,26 @@ classdef MouseFinder
     
     
     function scrollrawimages(obj)   
+      fig = figure;
+      slider = obj.createslider(fig);
+      ImageHandle = imagesc(getrawimage(obj,slider.Value));
+      TitleHandle =  title(sprintf('Image %i',slider.Value));
+      addlistener(slider,'Value','PostSet',@updplot);
+      % Nested function for updating plot:
+      function updplot(~, event)
+        sliderValue = round(event.AffectedObject.Value);
+        set(ImageHandle, 'CData', getrawimage(obj,sliderValue))
+        set(TitleHandle, 'String', sprintf('Image %i',sliderValue))
+      end
+    end
+    
+    function slider = createslider(obj, fig)
+        slider = uicontrol('Parent', fig, 'Style', 'slider',...
+        'Units', 'Normalized', 'Position', [0 0 .5 .05]);
+      set(slider, 'Min',1)
+      set(slider, 'Max', obj.getNumberOfImages)
+      set(slider, 'SliderStep', [1/obj.getNumberOfImages 0.1])
+      set(slider,  'Value', 10)
     end
     
     function img = getimage(obj, ImageNumner)
