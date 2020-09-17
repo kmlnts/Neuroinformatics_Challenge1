@@ -8,19 +8,29 @@ classdef MouseFinder
   
   properties (GetAccess = private)
     fileds
+    ImagesFolder
   end
   
   methods
     function obj = MouseFinder()
-      %UNTITLED Construct an instance of this class
-      %   Detailed explanation goes here
-      obj.Property1 = inputArg1 + inputArg2;
+      %MouseFinder Initilize with default folder name
+      obj.ImagesFolder = ['images' filesep]; 
     end
     
-    function outputArg = method1(obj,inputArg)
-      %METHOD1 Summary of this method goes here
-      %   Detailed explanation goes here
-      outputArg = obj.Property1 + inputArg;
+    
+    function img = getimage(obj, ImageNumner)
+      % Load and preprocess image. 
+      img = obj.preprocessrawimage(obj.getrawimage(ImageNumner));
+    end
+    
+    function img = getrawimage(obj,ImageNumber)
+      % get raw image
+      img = imread([obj.ImagesFolder sprintf('img%0.3i.jpeg',ImageNumber)]);
+    end
+    
+    function imgOUT = preprocessrawimage(imgIN)
+      % Here some preprocessing can be applied
+      imgOUT = imgIN(:,:,1);
     end
   end
 end
