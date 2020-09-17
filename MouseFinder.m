@@ -1,31 +1,61 @@
 classdef MouseFinder
-  %UNTITLED Summary of this class goes here
-  %   Detailed explanation goes here
-  
+  % MouseFinder
+  % Calculate
+  % Present results
   properties
     ImagesFolder
     AreaList
     ImagesWhereAreaIsEmpty
     AreasEmptyImages
   end
-%   
-%   properties (GetAccess = private)
-%     AreasEmptyImages
-%   end
-  
+
   methods
     function obj = MouseFinder()
       %MouseFinder Initilize with default folder name
       obj.ImagesFolder = ['images' filesep]; 
       obj.AreaList =  [70 70, 200,450;...
-                    270 70, 200,450;...
-                    470 70, 200,450];
+                      270 70, 200,450;...
+                      470 70, 200,450];
       obj.ImagesWhereAreaIsEmpty = [1,1,9];
       obj.AreasEmptyImages = obj.getEmptyAreas();
     end
     
+    function imgOut = imcropArea(obj, img, areanum)
+       imgOut = imcrop(img,  obj.AreaList(areanum,:));
+    end
     
+    function AreaDiff = getdifference(obj, img)
+      AreaDiff = obj.AreasEmptyImages;
+      for iArea = 1:numel(obj.AreasEmptyImages)
+          imgdiff = abs(obj.AreasEmptyImages{iArea} - obj.imcropArea(img, iArea));
+          imgdiff(imgdiff<10) = 0;
+          AreaDiff{iArea} = imgdiff;
+      end  
+    end
     
+    function location = getLocationWithMouse(~, AreaDiff)
+      % There could be another test, what about if mouse escapes? :)
+     [~, location] = max(cellfun(@(x) mean(x,'all') , AreaDiff));
+    end
+    
+    function MouseLocation = findmouselocation(obj)
+      MouseLocation = zeros(1,obj.getNumberOfImages);
+      f = waitbar(0,'Please wait...');
+      for i = 1:obj.getNumberOfImages
+        img = obj.getimage(i);
+        AreaDiff = getdifference(obj, img);
+        MouseLocation(i) = obj.getLocationWithMouse(AreaDiff);
+        waitbar(i/obj.getNumberOfImages,f,'Please wait..');
+      end
+    end
+    
+    function showdiff(~, AreaDiff)
+      nAreas = numel(AreaDiff);
+      for iArea = 1:nAreas
+        subplot(1,nAreas, iArea)
+        imagesc(AreaDiff{iArea})
+      end
+    end
     function EmptyAreas = getEmptyAreas(obj)
       % Load images and cut empty images. Save them for later calculations
       nAreas = size(obj.AreaList,1);
