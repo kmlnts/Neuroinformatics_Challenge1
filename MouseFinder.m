@@ -20,6 +20,8 @@ classdef MouseFinder
       obj.AreasEmptyImages = obj.getEmptyAreas();
     end
     
+
+    
     function imgOut = imcropArea(obj, img, areanum)
        imgOut = imcrop(img,  obj.AreaList(areanum,:));
     end
@@ -40,13 +42,15 @@ classdef MouseFinder
     
     function MouseLocation = findmouselocation(obj)
       MouseLocation = zeros(1,obj.getNumberOfImages);
+      nImages = obj.getNumberOfImages;
       f = waitbar(0,'Please wait...');
-      for i = 1:obj.getNumberOfImages
+      for i = 1:nImages
         img = obj.getimage(i);
         AreaDiff = getdifference(obj, img);
         MouseLocation(i) = obj.getLocationWithMouse(AreaDiff);
-        waitbar(i/obj.getNumberOfImages,f,'Please wait..');
+        if rem(i,20),waitbar(i/nImages,f,'Please wait..'); end
       end
+      close(f)
     end
     
     function showdiff(~, AreaDiff)
