@@ -20,7 +20,33 @@ classdef MouseFinder
       obj.AreasEmptyImages = obj.getEmptyAreas();
     end
     
-
+    function nAreas = getAreasNumber(obj)
+      nAreas = size(obj.AreaList,1);
+    end
+    function handles = drawareas(obj)
+      for iArea = 1:obj.getAreasNumber()
+        handles(iArea) = rectangle('Position', obj.AreaList(iArea,:),...
+          'EdgeColor', 'r', 'LineWidth', 2);
+      end
+    end
+    
+    function showresults(obj, MauseLocation)
+      fig = figure;
+      slider = obj.createslider(fig);
+      ImageHandle = imagesc(getrawimage(obj,slider.Value));
+      AreasHandles = drawareas(obj);
+      set(AreasHandles(MauseLocation(slider.Value)), 'EdgeColor', [0 1 0])
+      TitleHandle =  title(sprintf('Image %i',slider.Value));
+      addlistener(slider,'Value','PostSet',@updplot);
+      % Nested function for updating plot:
+      function updplot(~, event)
+        set(AreasHandles, 'EdgeColor', [1 0 0])
+        sliderValue = round(event.AffectedObject.Value);
+        set(AreasHandles(MauseLocation(sliderValue)), 'EdgeColor', [0 1 0])
+        set(ImageHandle, 'CData', getrawimage(obj,sliderValue))
+        set(TitleHandle, 'String', sprintf('Image %i',sliderValue))
+      end
+    end
     
     function imgOut = imcropArea(obj, img, areanum)
        imgOut = imcrop(img,  obj.AreaList(areanum,:));
@@ -40,7 +66,7 @@ classdef MouseFinder
      [~, location] = max(cellfun(@(x) mean(x,'all') , AreaDiff));
     end
     
-    function MouseLocation = findmouselocation(obj)
+    function MouseLocation= findmouselocation(obj)
       MouseLocation = zeros(1,obj.getNumberOfImages);
       nImages = obj.getNumberOfImages;
       f = waitbar(0,'Please wait...');
