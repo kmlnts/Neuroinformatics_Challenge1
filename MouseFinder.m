@@ -1,7 +1,5 @@
 classdef MouseFinder
   % MouseFinder
-  % Calculate
-  % Present results
   properties
     ImagesFolder
     AreaList
@@ -26,13 +24,15 @@ classdef MouseFinder
     function handles = drawareas(obj)
       for iArea = 1:obj.getAreasNumber()
         handles(iArea) = rectangle('Position', obj.AreaList(iArea,:),...
-          'EdgeColor', 'r', 'LineWidth', 2);
+          'EdgeColor', 'r', 'LineWidth', 2); %#ok<AGROW>
       end
     end
     
     function showresults(obj, MauseLocation)
       fig = figure;
+      
       slider = obj.createslider(fig);
+      subplot(1,3,1:2)
       ImageHandle = imagesc(getrawimage(obj,slider.Value));
       AreasHandles = drawareas(obj);
       set(AreasHandles(MauseLocation(slider.Value)), 'EdgeColor', [0 1 0])
@@ -44,8 +44,15 @@ classdef MouseFinder
         sliderValue = round(event.AffectedObject.Value);
         set(AreasHandles(MauseLocation(sliderValue)), 'EdgeColor', [0 1 0])
         set(ImageHandle, 'CData', getrawimage(obj,sliderValue))
-        set(TitleHandle, 'String', sprintf('Image %i',sliderValue))
+        set(TitleHandle, 'String', sprintf('Image %i Location [%i]',...
+          sliderValue, MauseLocation(sliderValue)))
       end
+      
+      subplot(1,3,3)
+      uv = unique(MauseLocation);
+      bins = histc(MauseLocation,uv);
+      pie(bins, num2str(uv'))
+      title('Time spend in each location')
     end
     
     function imgOut = imcropArea(obj, img, areanum)
@@ -86,6 +93,7 @@ classdef MouseFinder
         imagesc(AreaDiff{iArea})
       end
     end
+    
     function EmptyAreas = getEmptyAreas(obj)
       % Load images and cut empty images. Save them for later calculations
       nAreas = size(obj.AreaList,1);
